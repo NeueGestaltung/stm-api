@@ -1,0 +1,141 @@
+.stm-cal {
+  font-family: var(--font-sans, sans-serif);
+  font-size: var(--text-sm, 0.8125rem);
+}
+
+/* Header */
+.stm-cal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4, 1rem);
+}
+
+/* Weekday row */
+.stm-cal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+}
+.stm-cal__weekdays span {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--color-gray-500, #6b7280);
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Grid */
+.stm-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* Day cell */
+.stm-cal__day {
+  min-height: 100px;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-gray-200, #e5e7eb);
+  border-radius: var(--rounded, 4px);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.stm-cal__day--empty {
+  background: transparent;
+  border-color: transparent;
+}
+.stm-cal__day--today {
+  border-color: var(--color-blue-600, #2563eb);
+  background: var(--color-blue-50, #eff6ff);
+}
+.stm-cal__day--today .stm-cal__day__number {
+  color: var(--color-blue-600, #2563eb);
+  font-weight: 700;
+}
+
+/* Day number */
+.stm-cal__day__number {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-700, #374151);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+/* Events list */
+.stm-cal__events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Single event */
+.stm-cal__event {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-gray-100, #f3f4f6);
+  border-left: 3px solid #3b82f6;
+  border-radius: 2px;
+  padding: 2px 4px;
+  overflow: hidden;
+}
+.stm-cal__event__time {
+  font-size: 0.65rem;
+  color: var(--color-gray-500, #6b7280);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.stm-cal__event__title {
+  font-size: 0.7rem;
+  color: var(--color-gray-800, #1f2937);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.k-block-type-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.k-block-type-calendar__header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.4rem;
+}
+.k-block-type-calendar__weekdays,
+.k-block-type-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+.k-block-type-calendar__weekdays span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #999;
+  padding: 2px 0;
+}
+.k-block-type-calendar__day {
+  padding: 4px 2px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.k-block-type-calendar__day--today {
+  background: var(--color-focus, #2563eb);
+  color: #fff;
+  font-weight: 700;
+}
+.k-block-type-calendar__day--empty {
+  visibility: hidden;
+}
