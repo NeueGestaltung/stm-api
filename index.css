@@ -202,3 +202,20 @@
   padding: 1px 5px;
   border-radius: 3px;
 }
+.stm-cal__dialog__page-loading[data-v-4a680808] {
+  display: inline-block;
+  margin-left: .4rem;
+  font-size: .75rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+.stm-cal__dialog__page-link[data-v-4a680808] {
+  display: inline-block;
+  margin-left: .4rem;
+  font-size: .8rem;
+  color: #3b82f6;
+  text-decoration: none;
+}
+.stm-cal__dialog__page-link[data-v-4a680808]:hover {
+  text-decoration: underline;
+}

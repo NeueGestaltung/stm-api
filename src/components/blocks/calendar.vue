@@ -73,7 +73,11 @@
           <dl class="stm-cal__dialog__dl">
             <div class="stm-cal__dialog__row">
               <dt>ID</dt>
-              <dd><code>{{ selectedEvent.id }}</code></dd>
+              <dd>
+                <code>{{ selectedEvent.id }}</code>
+                <span v-if="eventPageLoading" class="stm-cal__dialog__page-loading">Seite wird gesucht …</span>
+                <a v-else-if="eventPageUrl" :href="eventPageUrl" class="stm-cal__dialog__page-link">{{ eventPageTitle }} →</a>
+              </dd>
             </div>
             <div class="stm-cal__dialog__row">
               <dt>Datum</dt>
@@ -153,7 +157,10 @@ export default {
       events:   [],
       loading:  false,
       error:    null,
-      selectedEvent: null,
+      selectedEvent:    null,
+      eventPageUrl:     null,
+      eventPageTitle:   null,
+      eventPageLoading: false,
     };
   },
   mounted() {
@@ -257,9 +264,30 @@ export default {
       else { this.month++; }
     },
     openEventDialog(event) {
-      console.log("open!");
-      this.selectedEvent = event;
+      this.selectedEvent    = event;
+      this.eventPageUrl     = null;
+      this.eventPageTitle   = null;
+      this.eventPageLoading = false;
       this.$refs.eventDialog.open();
+      this.fetchEventPage(event.id);
+    },
+    async fetchEventPage(id) {
+      this.eventPageLoading = true;
+      try {
+        const base = window.location.pathname.replace(/\/panel.*$/, '');
+        const res  = await fetch(`${base}/stm/page-for-event/${encodeURIComponent(id)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            this.eventPageUrl   = data.url;
+            this.eventPageTitle = data.title;
+          }
+        }
+      } catch {
+        // silently ignore
+      } finally {
+        this.eventPageLoading = false;
+      }
     },
     formatDate(isoDate) {
       if (!isoDate) return '';
@@ -334,6 +362,23 @@ export default {
   background: #f3f4f6;
   padding: 1px 5px;
   border-radius: 3px;
+}
+.stm-cal__dialog__page-loading {
+  display: inline-block;
+  margin-left: .4rem;
+  font-size: .75rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+.stm-cal__dialog__page-link {
+  display: inline-block;
+  margin-left: .4rem;
+  font-size: .8rem;
+  color: #3b82f6;
+  text-decoration: none;
+}
+.stm-cal__dialog__page-link:hover {
+  text-decoration: underline;
 }
 </style>
 

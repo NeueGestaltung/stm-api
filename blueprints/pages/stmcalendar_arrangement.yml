@@ -15,7 +15,8 @@ sections:
       eventimid:
         label: Eventim ID
         type: tags
-        max: 1
+        max: 2
+        help: "wäre es sinnvoll hier mehrere tags möglich zu machen »Quatsch, existiert z.B. zwei mal … "
         options:
           type: api
           url: "{{ site.url }}/stm/eventim-ids"
@@ -24,6 +25,8 @@ sections:
       theasoftid:
         label: Theasoft ID
         type: text
+       
+       
       myblocks:
         type: blocks
         fieldsets:

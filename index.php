@@ -1,6 +1,14 @@
 <?php
 
 Kirby::plugin('stm/stm-api', [
+  'options' => [
+    'cache' => true,
+  ],
+  'collections' => [
+    'arrangements' => function ($kirby) {
+      return $kirby->site()->index()->filterBy('intendedTemplate', 'stmcalendar_arrangement');
+    },
+  ],
   'blueprints' => [
     'pages/stmcalendar' => __DIR__ . '/blueprints/pages/stmcalendar.yml',
     'pages/stmcalendar_arrangement' => __DIR__ . '/blueprints/pages/stmcalendar_arrangement.yml',
@@ -18,35 +26,67 @@ Kirby::plugin('stm/stm-api', [
       'pattern' => 'stm/eventim-export',
       'method'  => 'GET',
       'action'  => function () {
-        $remote = \Kirby\Http\Remote::get(
-          'https://ticket.staatstheater-mainz.de/eventim.webshop/export/export',
-          ['timeout' => 10]
-        );
+        $cache = kirby()->cache('stm.stm-api');
+        $xml   = $cache->get('eventim-xml');
 
-        if ($remote->code() !== 200) {
-          return \Kirby\Http\Response::json(['error' => 'Upstream error'], 502);
+        if ($xml === null) {
+          $remote = \Kirby\Http\Remote::get(
+            'https://ticket.staatstheater-mainz.de/eventim.webshop/export/export',
+            ['timeout' => 10]
+          );
+
+          if ($remote->code() !== 200) {
+            return \Kirby\Http\Response::json(['error' => 'Upstream error'], 502);
+          }
+
+          $xml = $remote->content();
+          $cache->set('eventim-xml', $xml, 5);
         }
 
-        return new \Kirby\Http\Response($remote->content(), 'application/xml', 200);
+        return new \Kirby\Http\Response($xml, 'application/xml', 200);
+      },
+    ],
+    [
+      'pattern' => 'stm/page-for-event/(:any)',
+      'method'  => 'GET',
+      'action'  => function (string $id) {
+        $pages = kirby()->collection('arrangements');
+        foreach ($pages as $page) {
+          if (in_array($id, $page->eventimid()->split(), true)) {
+            return \Kirby\Http\Response::json([
+              'url'   => $page->panel()->url(),
+              'title' => $page->title()->value(),
+            ], 200);
+          }
+        }
+        return \Kirby\Http\Response::json(null, 200);
       },
     ],
     [
       'pattern' => 'stm/eventim-ids',
       'method'  => 'GET',
       'action'  => function () {
-        $remote = \Kirby\Http\Remote::get(
-          'https://ticket.staatstheater-mainz.de/eventim.webshop/export/export',
-          ['timeout' => 10]
-        );
+        $cache = kirby()->cache('stm.stm-api');
+        $xml   = $cache->get('eventim-xml');
 
-        if ($remote->code() !== 200) {
-          return \Kirby\Http\Response::json([], 200);
+        if ($xml === null) {
+          $remote = \Kirby\Http\Remote::get(
+            'https://ticket.staatstheater-mainz.de/eventim.webshop/export/export',
+            ['timeout' => 10]
+          );
+
+          if ($remote->code() !== 200) {
+            return \Kirby\Http\Response::json([], 200);
+          }
+
+          $xml = $remote->content();
+          $cache->set('eventim-xml', $xml, 5);
         }
 
-        $xml    = simplexml_load_string($remote->content());
+        $xmlObj = simplexml_load_string($xml);
         $result = [];
 
-        foreach ($xml->veranstaltung ?? [] as $v) {
+        foreach ($xmlObj->veranstaltung ?? [] as $v) {
           $id    = (string) ($v->attributes()['id'] ?? '');
           $titel = trim((string) ($v->titel ?? $id));
 

@@ -40,7 +40,10 @@
         events: [],
         loading: false,
         error: null,
-        selectedEvent: null
+        selectedEvent: null,
+        eventPageUrl: null,
+        eventPageTitle: null,
+        eventPageLoading: false
       };
     },
     mounted() {
@@ -145,9 +148,29 @@
         }
       },
       openEventDialog(event) {
-        console.log("open!");
         this.selectedEvent = event;
+        this.eventPageUrl = null;
+        this.eventPageTitle = null;
+        this.eventPageLoading = false;
         this.$refs.eventDialog.open();
+        this.fetchEventPage(event.id);
+      },
+      async fetchEventPage(id) {
+        this.eventPageLoading = true;
+        try {
+          const base = window.location.pathname.replace(/\/panel.*$/, "");
+          const res = await fetch(`${base}/stm/page-for-event/${encodeURIComponent(id)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              this.eventPageUrl = data.url;
+              this.eventPageTitle = data.title;
+            }
+          }
+        } catch {
+        } finally {
+          this.eventPageLoading = false;
+        }
       },
       formatDate(isoDate) {
         if (!isoDate) return "";
@@ -168,7 +191,7 @@
           return _vm.openEventDialog(event);
         } } }, [_c("span", { staticClass: "stm-cal__event__time" }, [_vm._v(_vm._s(event.time))]), _c("span", { staticClass: "stm-cal__event__title" }, [_vm._v(_vm._s(event.title))]), event.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : event.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _vm._e()]);
       }), 0)]);
-    })], 2), _c("k-dialog", { ref: "eventDialog", attrs: { "cancel-button": { label: "Schließen" }, "submit-button": false, "size": "medium" } }, [_vm.selectedEvent ? [_c("k-headline", { staticClass: "stm-cal__dialog__headline" }, [_vm._v(_vm._s(_vm.selectedEvent.title))]), _c("k-text", { staticClass: "stm-cal__dialog__body" }, [_c("dl", { staticClass: "stm-cal__dialog__dl" }, [_c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("ID")]), _c("dd", [_c("code", [_vm._v(_vm._s(_vm.selectedEvent.id))])])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Datum")]), _c("dd", [_vm._v(_vm._s(_vm.formatDate(_vm.selectedEvent.date)))])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Beginn")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.time) + " Uhr")])]), _vm.selectedEvent.einlass ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Einlass")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.einlass) + " Uhr")])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Spielort")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.spielort))])]), _vm.selectedEvent.untertitel ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Untertitel")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.untertitel))])]) : _vm._e(), _vm.selectedEvent.genre ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Genre")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.genre))])]) : _vm._e(), _vm.selectedEvent.veranstalter ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Veranstalter")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.veranstalter))])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Verfügbarkeit")]), _c("dd", [_vm.selectedEvent.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : _vm.selectedEvent.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _c("span", [_vm._v(" " + _vm._s(_vm.selectedEvent.freieplaetze) + " / " + _vm._s(_vm.selectedEvent.kapazitaet) + " Plätze frei ")])])]), _vm.selectedEvent.ticketLink ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Tickets")]), _c("dd", [_c("a", { attrs: { "href": _vm.selectedEvent.ticketLink, "target": "_blank", "rel": "noopener" } }, [_vm._v("Zum Ticketshop")])])]) : _vm._e()])])] : _vm._e()], 2)], 1);
+    })], 2), _c("k-dialog", { ref: "eventDialog", attrs: { "cancel-button": { label: "Schließen" }, "submit-button": false, "size": "medium" } }, [_vm.selectedEvent ? [_c("k-headline", { staticClass: "stm-cal__dialog__headline" }, [_vm._v(_vm._s(_vm.selectedEvent.title))]), _c("k-text", { staticClass: "stm-cal__dialog__body" }, [_c("dl", { staticClass: "stm-cal__dialog__dl" }, [_c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("ID")]), _c("dd", [_c("code", [_vm._v(_vm._s(_vm.selectedEvent.id))]), _vm.eventPageLoading ? _c("span", { staticClass: "stm-cal__dialog__page-loading" }, [_vm._v("Seite wird gesucht …")]) : _vm.eventPageUrl ? _c("a", { staticClass: "stm-cal__dialog__page-link", attrs: { "href": _vm.eventPageUrl } }, [_vm._v(_vm._s(_vm.eventPageTitle) + " →")]) : _vm._e()])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Datum")]), _c("dd", [_vm._v(_vm._s(_vm.formatDate(_vm.selectedEvent.date)))])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Beginn")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.time) + " Uhr")])]), _vm.selectedEvent.einlass ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Einlass")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.einlass) + " Uhr")])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Spielort")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.spielort))])]), _vm.selectedEvent.untertitel ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Untertitel")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.untertitel))])]) : _vm._e(), _vm.selectedEvent.genre ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Genre")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.genre))])]) : _vm._e(), _vm.selectedEvent.veranstalter ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Veranstalter")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.veranstalter))])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Verfügbarkeit")]), _c("dd", [_vm.selectedEvent.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : _vm.selectedEvent.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _c("span", [_vm._v(" " + _vm._s(_vm.selectedEvent.freieplaetze) + " / " + _vm._s(_vm.selectedEvent.kapazitaet) + " Plätze frei ")])])]), _vm.selectedEvent.ticketLink ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Tickets")]), _c("dd", [_c("a", { attrs: { "href": _vm.selectedEvent.ticketLink, "target": "_blank", "rel": "noopener" } }, [_vm._v("Zum Ticketshop")])])]) : _vm._e()])])] : _vm._e()], 2)], 1);
   };
   var _sfc_staticRenderFns = [];
   _sfc_render._withStripped = true;
