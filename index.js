@@ -7,37 +7,34 @@
       options.staticRenderFns = staticRenderFns;
       options._compiled = true;
     }
+    {
+      options._scopeId = "data-v-" + scopeId;
+    }
     return {
       exports: scriptExports,
       options
     };
   }
+  const VENUE_COLORS = {
+    "Großes Haus": "#3b82f6",
+    "Kleines Haus": "#8b5cf6",
+    "U 17": "#10b981",
+    "Orchestersaal": "#f59e0b"
+  };
   const _sfc_main = {
     data() {
       const now = /* @__PURE__ */ new Date();
-      const y = now.getFullYear();
-      const m = now.getMonth();
-      const pad = (y2, m2, d) => `${y2}-${String(m2 + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       return {
-        year: y,
-        month: m,
+        year: now.getFullYear(),
+        month: now.getMonth(),
         weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-        events: [
-          { id: 1, date: pad(y, m, 3), time: "09:00", title: "Team Standup", color: "#3b82f6" },
-          { id: 2, date: pad(y, m, 3), time: "14:00", title: "Design Review", color: "#8b5cf6" },
-          { id: 3, date: pad(y, m, 3), time: "17:30", title: "Client Call", color: "#f59e0b" },
-          { id: 4, date: pad(y, m, 7), time: "10:00", title: "Sprint Planning", color: "#3b82f6" },
-          { id: 5, date: pad(y, m, 10), time: "08:30", title: "Workshop", color: "#10b981" },
-          { id: 6, date: pad(y, m, 10), time: "13:00", title: "Lunch & Learn", color: "#f59e0b" },
-          { id: 7, date: pad(y, m, 15), time: "11:00", title: "Quarterly Review", color: "#ef4444" },
-          { id: 8, date: pad(y, m, 18), time: "09:00", title: "Team Standup", color: "#3b82f6" },
-          { id: 9, date: pad(y, m, 18), time: "15:00", title: "Product Demo", color: "#8b5cf6" },
-          { id: 10, date: pad(y, m, 22), time: "10:30", title: "UX Research", color: "#10b981" },
-          { id: 11, date: pad(y, m, 25), time: "09:00", title: "Team Standup", color: "#3b82f6" },
-          { id: 12, date: pad(y, m, 25), time: "16:00", title: "Release Planning", color: "#ef4444" },
-          { id: 13, date: pad(y, m, 28), time: "14:00", title: "Retrospective", color: "#f59e0b" }
-        ]
+        events: [],
+        loading: false,
+        error: null
       };
+    },
+    mounted() {
+      this.fetchEvents();
     },
     computed: {
       monthLabel() {
@@ -52,6 +49,54 @@
       }
     },
     methods: {
+      async fetchEvents() {
+        this.loading = true;
+        this.error = null;
+        try {
+          const base = window.location.pathname.replace(/\/panel.*$/, "");
+          const res = await fetch(`${base}/stm/eventim-export`);
+          const text = await res.text();
+          const xml = new DOMParser().parseFromString(text, "text/xml");
+          this.events = Array.from(xml.querySelectorAll("veranstaltung")).map((v) => {
+            const text2 = (sel) => {
+              var _a, _b;
+              return ((_b = (_a = v.querySelector(sel)) == null ? void 0 : _a.textContent) == null ? void 0 : _b.trim()) ?? "";
+            };
+            const datum = text2("datum");
+            const [d, mo, y] = datum.split(".");
+            const date = `${y}-${mo}-${d}`;
+            const raw = text2("veranstaltungsbeginn").padStart(4, "0");
+            const time = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+            const spielort = text2("spielort");
+            const kapazitaet = parseInt(text2("kapazitaet") || "0", 10);
+            const freieplaetze = parseInt(text2("absolutfreieplaetze") || "0", 10);
+            const apiStatus = parseInt(text2("status") || "2", 10);
+            let ticketStatus;
+            if (apiStatus === 0 || freieplaetze === 0) {
+              ticketStatus = "sold-out";
+            } else if (apiStatus === 1 || kapazitaet > 0 && freieplaetze / kapazitaet < 0.1) {
+              ticketStatus = "low";
+            } else {
+              ticketStatus = "available";
+            }
+            return {
+              id: v.getAttribute("id"),
+              title: text2("titel"),
+              date,
+              time,
+              spielort,
+              color: VENUE_COLORS[spielort] ?? "#6b7280",
+              ticketStatus,
+              freieplaetze,
+              kapazitaet
+            };
+          });
+        } catch {
+          this.error = "Veranstaltungen konnten nicht geladen werden.";
+        } finally {
+          this.loading = false;
+        }
+      },
       pad(y, m, d) {
         return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       },
@@ -83,13 +128,13 @@
   };
   var _sfc_render = function render() {
     var _vm = this, _c = _vm._self._c;
-    return _c("div", { staticClass: "stm-cal" }, [_c("div", { staticClass: "stm-cal__header" }, [_c("k-button", { attrs: { "icon": "angle-left" }, on: { "click": _vm.prevMonth } }), _c("k-headline", { attrs: { "size": "medium" } }, [_vm._v(_vm._s(_vm.monthLabel))]), _c("k-button", { attrs: { "icon": "angle-right" }, on: { "click": _vm.nextMonth } })], 1), _c("div", { staticClass: "stm-cal__weekdays" }, _vm._l(_vm.weekdays, function(d) {
+    return _c("div", { staticClass: "stm-cal" }, [_c("div", { staticClass: "stm-cal__header" }, [_c("k-button", { attrs: { "icon": "angle-left" }, on: { "click": _vm.prevMonth } }), _c("k-headline", { attrs: { "size": "medium" } }, [_vm._v(_vm._s(_vm.monthLabel))]), _c("k-button", { attrs: { "icon": "angle-right" }, on: { "click": _vm.nextMonth } })], 1), _vm.loading ? _c("div", { staticClass: "stm-cal__loading" }, [_vm._v("Veranstaltungen werden geladen …")]) : _vm.error ? _c("div", { staticClass: "stm-cal__error" }, [_vm._v(_vm._s(_vm.error))]) : _vm._e(), _c("div", { staticClass: "stm-cal__weekdays" }, _vm._l(_vm.weekdays, function(d) {
       return _c("span", { key: d }, [_vm._v(_vm._s(d))]);
     }), 0), _c("div", { staticClass: "stm-cal__grid" }, [_vm._l(_vm.startOffset, function(n) {
       return _c("div", { key: "e" + n, staticClass: "stm-cal__day stm-cal__day--empty" });
     }), _vm._l(_vm.daysInMonth, function(day) {
       return _c("div", { key: day, staticClass: "stm-cal__day", class: { "stm-cal__day--today": _vm.isToday(day) } }, [_c("span", { staticClass: "stm-cal__day__number" }, [_vm._v(_vm._s(day))]), _c("div", { staticClass: "stm-cal__events" }, _vm._l(_vm.eventsForDay(day), function(event) {
-        return _c("div", { key: event.id, staticClass: "stm-cal__event", style: { borderLeftColor: event.color } }, [_c("span", { staticClass: "stm-cal__event__time" }, [_vm._v(_vm._s(event.time))]), _c("span", { staticClass: "stm-cal__event__title" }, [_vm._v(_vm._s(event.title))])]);
+        return _c("div", { key: event.id, staticClass: "stm-cal__event", style: { borderLeftColor: event.color } }, [_c("span", { staticClass: "stm-cal__event__time" }, [_vm._v(_vm._s(event.time))]), _c("span", { staticClass: "stm-cal__event__title" }, [_vm._v(_vm._s(event.title))]), event.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : event.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _vm._e()]);
       }), 0)]);
     })], 2)]);
   };
@@ -98,7 +143,10 @@
   var __component__ = /* @__PURE__ */ normalizeComponent(
     _sfc_main,
     _sfc_render,
-    _sfc_staticRenderFns
+    _sfc_staticRenderFns,
+    false,
+    null,
+    "4a680808"
   );
   __component__.options.__file = "/Users/fabian/Sites/stm-headless/site/plugins/stm-api/src/components/blocks/calendar.vue";
   const calendar = __component__.exports;

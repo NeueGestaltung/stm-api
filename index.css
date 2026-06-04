@@ -139,3 +139,29 @@
 .k-block-type-calendar__day--empty {
   visibility: hidden;
 }
+
+.stm-cal__loading[data-v-4a680808],
+.stm-cal__error[data-v-4a680808] {
+  padding: .5rem 0;
+  font-size: .85rem;
+  color: #6b7280;
+}
+.stm-cal__error[data-v-4a680808] { color: #ef4444;
+}
+.stm-cal__event__status[data-v-4a680808] {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: .7rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.stm-cal__event__status--sold-out[data-v-4a680808] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.stm-cal__event__status--low[data-v-4a680808] {
+  background: #fef3c7;
+  color: #b45309;
+}

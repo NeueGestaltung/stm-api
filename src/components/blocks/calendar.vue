@@ -8,6 +8,10 @@
       <k-button icon="angle-right" @click="nextMonth" />
     </div>
 
+    <!-- Loading / Error -->
+    <div v-if="loading" class="stm-cal__loading">Veranstaltungen werden geladen …</div>
+    <div v-else-if="error" class="stm-cal__error">{{ error }}</div>
+
     <!-- Weekday labels -->
     <div class="stm-cal__weekdays">
       <span v-for="d in weekdays" :key="d">{{ d }}</span>
@@ -41,6 +45,14 @@
           >
             <span class="stm-cal__event__time">{{ event.time }}</span>
             <span class="stm-cal__event__title">{{ event.title }}</span>
+            <span
+              v-if="event.ticketStatus === 'sold-out'"
+              class="stm-cal__event__status stm-cal__event__status--sold-out"
+            >Ausverkauft</span>
+            <span
+              v-else-if="event.ticketStatus === 'low'"
+              class="stm-cal__event__status stm-cal__event__status--low"
+            >Letzte Tickets</span>
           </div>
         </div>
       </div>
@@ -50,32 +62,27 @@
 </template>
 
 <script>
+const VENUE_COLORS = {
+  'Großes Haus':  '#3b82f6',
+  'Kleines Haus': '#8b5cf6',
+  'U 17':         '#10b981',
+  'Orchestersaal':'#f59e0b',
+};
+
 export default {
   data() {
     const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth();
-    const pad = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     return {
-      year: y,
-      month: m,
+      year:     now.getFullYear(),
+      month:    now.getMonth(),
       weekdays: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-      events: [
-        { id: 1,  date: pad(y, m, 3),  time: '09:00', title: 'Team Standup',       color: '#3b82f6' },
-        { id: 2,  date: pad(y, m, 3),  time: '14:00', title: 'Design Review',      color: '#8b5cf6' },
-        { id: 3,  date: pad(y, m, 3),  time: '17:30', title: 'Client Call',        color: '#f59e0b' },
-        { id: 4,  date: pad(y, m, 7),  time: '10:00', title: 'Sprint Planning',    color: '#3b82f6' },
-        { id: 5,  date: pad(y, m, 10), time: '08:30', title: 'Workshop',           color: '#10b981' },
-        { id: 6,  date: pad(y, m, 10), time: '13:00', title: 'Lunch & Learn',      color: '#f59e0b' },
-        { id: 7,  date: pad(y, m, 15), time: '11:00', title: 'Quarterly Review',   color: '#ef4444' },
-        { id: 8,  date: pad(y, m, 18), time: '09:00', title: 'Team Standup',       color: '#3b82f6' },
-        { id: 9,  date: pad(y, m, 18), time: '15:00', title: 'Product Demo',       color: '#8b5cf6' },
-        { id: 10, date: pad(y, m, 22), time: '10:30', title: 'UX Research',        color: '#10b981' },
-        { id: 11, date: pad(y, m, 25), time: '09:00', title: 'Team Standup',       color: '#3b82f6' },
-        { id: 12, date: pad(y, m, 25), time: '16:00', title: 'Release Planning',   color: '#ef4444' },
-        { id: 13, date: pad(y, m, 28), time: '14:00', title: 'Retrospective',      color: '#f59e0b' },
-      ],
+      events:   [],
+      loading:  false,
+      error:    null,
     };
+  },
+  mounted() {
+    this.fetchEvents();
   },
   computed: {
     monthLabel() {
@@ -91,6 +98,58 @@ export default {
     },
   },
   methods: {
+    async fetchEvents() {
+      this.loading = true;
+      this.error   = null;
+      try {
+        const base = window.location.pathname.replace(/\/panel.*$/, '');
+        const res  = await fetch(`${base}/stm/eventim-export`);
+
+
+        const text = await res.text();
+        const xml  = new DOMParser().parseFromString(text, 'text/xml');
+
+        this.events = Array.from(xml.querySelectorAll('veranstaltung')).map(v => {
+          const text  = sel => v.querySelector(sel)?.textContent?.trim() ?? '';
+          const datum = text('datum');                          // DD.MM.YYYY
+          const [d, mo, y] = datum.split('.');
+          const date  = `${y}-${mo}-${d}`;
+
+          const raw  = text('veranstaltungsbeginn').padStart(4, '0');
+          const time = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+
+          const spielort     = text('spielort');
+          const kapazitaet   = parseInt(text('kapazitaet')  || '0', 10);
+          const freieplaetze = parseInt(text('absolutfreieplaetze') || '0', 10);
+          const apiStatus    = parseInt(text('status') || '2', 10);
+
+          let ticketStatus;
+          if (apiStatus === 0 || freieplaetze === 0) {
+            ticketStatus = 'sold-out';
+          } else if (apiStatus === 1 || (kapazitaet > 0 && freieplaetze / kapazitaet < 0.1)) {
+            ticketStatus = 'low';
+          } else {
+            ticketStatus = 'available';
+          }
+
+          return {
+            id:           v.getAttribute('id'),
+            title:        text('titel'),
+            date,
+            time,
+            spielort,
+            color:        VENUE_COLORS[spielort] ?? '#6b7280',
+            ticketStatus,
+            freieplaetze,
+            kapazitaet,
+          };
+        });
+      } catch {
+        this.error = 'Veranstaltungen konnten nicht geladen werden.';
+      } finally {
+        this.loading = false;
+      }
+    },
     pad(y, m, d) {
       return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     },
@@ -115,4 +174,32 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.stm-cal__loading,
+.stm-cal__error {
+  padding: .5rem 0;
+  font-size: .85rem;
+  color: #6b7280;
+}
+.stm-cal__error { color: #ef4444; }
+
+.stm-cal__event__status {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: .7rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.stm-cal__event__status--sold-out {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.stm-cal__event__status--low {
+  background: #fef3c7;
+  color: #b45309;
+}
+</style>
 
