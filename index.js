@@ -21,6 +21,15 @@
     "U 17": "#10b981",
     "Orchestersaal": "#f59e0b"
   };
+  function generateId() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      return (c === "x" ? r : r & 3 | 8).toString(16);
+    });
+  }
   const _sfc_main = {
     data() {
       const now = /* @__PURE__ */ new Date();
@@ -30,7 +39,8 @@
         weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
         events: [],
         loading: false,
-        error: null
+        error: null,
+        selectedEvent: null
       };
     },
     mounted() {
@@ -80,10 +90,20 @@
               ticketStatus = "available";
             }
             return {
-              id: v.getAttribute("id"),
+              id: v.getAttribute("id") || generateId(),
               title: text2("titel"),
               date,
               time,
+              einlass: (() => {
+                const raw2 = text2("einlass");
+                if (!raw2) return null;
+                const p = raw2.padStart(4, "0");
+                return `${p.slice(0, 2)}:${p.slice(2)}`;
+              })(),
+              untertitel: text2("untertitel") || null,
+              genre: text2("genre") || null,
+              veranstalter: text2("veranstalter") || null,
+              ticketLink: text2("ticketlink") || text2("vorverkauf") || null,
               spielort,
               color: VENUE_COLORS[spielort] ?? "#6b7280",
               ticketStatus,
@@ -123,6 +143,16 @@
         } else {
           this.month++;
         }
+      },
+      openEventDialog(event) {
+        console.log("open!");
+        this.selectedEvent = event;
+        this.$refs.eventDialog.open();
+      },
+      formatDate(isoDate) {
+        if (!isoDate) return "";
+        const [y, m, d] = isoDate.split("-");
+        return `${d}.${m}.${y}`;
       }
     }
   };
@@ -134,9 +164,11 @@
       return _c("div", { key: "e" + n, staticClass: "stm-cal__day stm-cal__day--empty" });
     }), _vm._l(_vm.daysInMonth, function(day) {
       return _c("div", { key: day, staticClass: "stm-cal__day", class: { "stm-cal__day--today": _vm.isToday(day) } }, [_c("span", { staticClass: "stm-cal__day__number" }, [_vm._v(_vm._s(day))]), _c("div", { staticClass: "stm-cal__events" }, _vm._l(_vm.eventsForDay(day), function(event) {
-        return _c("div", { key: event.id, staticClass: "stm-cal__event", style: { borderLeftColor: event.color } }, [_c("span", { staticClass: "stm-cal__event__time" }, [_vm._v(_vm._s(event.time))]), _c("span", { staticClass: "stm-cal__event__title" }, [_vm._v(_vm._s(event.title))]), event.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : event.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _vm._e()]);
+        return _c("div", { key: event.id, staticClass: "stm-cal__event", style: { borderLeftColor: event.color }, on: { "click": function($event) {
+          return _vm.openEventDialog(event);
+        } } }, [_c("span", { staticClass: "stm-cal__event__time" }, [_vm._v(_vm._s(event.time))]), _c("span", { staticClass: "stm-cal__event__title" }, [_vm._v(_vm._s(event.title))]), event.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : event.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _vm._e()]);
       }), 0)]);
-    })], 2)]);
+    })], 2), _c("k-dialog", { ref: "eventDialog", attrs: { "cancel-button": { label: "Schließen" }, "submit-button": false, "size": "medium" } }, [_vm.selectedEvent ? [_c("k-headline", { staticClass: "stm-cal__dialog__headline" }, [_vm._v(_vm._s(_vm.selectedEvent.title))]), _c("k-text", { staticClass: "stm-cal__dialog__body" }, [_c("dl", { staticClass: "stm-cal__dialog__dl" }, [_c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("ID")]), _c("dd", [_c("code", [_vm._v(_vm._s(_vm.selectedEvent.id))])])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Datum")]), _c("dd", [_vm._v(_vm._s(_vm.formatDate(_vm.selectedEvent.date)))])]), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Beginn")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.time) + " Uhr")])]), _vm.selectedEvent.einlass ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Einlass")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.einlass) + " Uhr")])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Spielort")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.spielort))])]), _vm.selectedEvent.untertitel ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Untertitel")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.untertitel))])]) : _vm._e(), _vm.selectedEvent.genre ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Genre")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.genre))])]) : _vm._e(), _vm.selectedEvent.veranstalter ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Veranstalter")]), _c("dd", [_vm._v(_vm._s(_vm.selectedEvent.veranstalter))])]) : _vm._e(), _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Verfügbarkeit")]), _c("dd", [_vm.selectedEvent.ticketStatus === "sold-out" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--sold-out" }, [_vm._v("Ausverkauft")]) : _vm.selectedEvent.ticketStatus === "low" ? _c("span", { staticClass: "stm-cal__event__status stm-cal__event__status--low" }, [_vm._v("Letzte Tickets")]) : _c("span", [_vm._v(" " + _vm._s(_vm.selectedEvent.freieplaetze) + " / " + _vm._s(_vm.selectedEvent.kapazitaet) + " Plätze frei ")])])]), _vm.selectedEvent.ticketLink ? _c("div", { staticClass: "stm-cal__dialog__row" }, [_c("dt", [_vm._v("Tickets")]), _c("dd", [_c("a", { attrs: { "href": _vm.selectedEvent.ticketLink, "target": "_blank", "rel": "noopener" } }, [_vm._v("Zum Ticketshop")])])]) : _vm._e()])])] : _vm._e()], 2)], 1);
   };
   var _sfc_staticRenderFns = [];
   _sfc_render._withStripped = true;

@@ -42,6 +42,7 @@
             :key="event.id"
             class="stm-cal__event"
             :style="{ borderLeftColor: event.color }"
+            @click="openEventDialog(event)"
           >
             <span class="stm-cal__event__time">{{ event.time }}</span>
             <span class="stm-cal__event__title">{{ event.title }}</span>
@@ -58,6 +59,69 @@
       </div>
 
     </div>
+
+    <!-- Event detail dialog -->
+    <k-dialog
+      ref="eventDialog"
+      :cancel-button="{ label: 'Schließen' }"
+      :submit-button="false"
+      size="medium"
+    >
+      <template v-if="selectedEvent">
+        <k-headline class="stm-cal__dialog__headline">{{ selectedEvent.title }}</k-headline>
+        <k-text class="stm-cal__dialog__body">
+          <dl class="stm-cal__dialog__dl">
+            <div class="stm-cal__dialog__row">
+              <dt>ID</dt>
+              <dd><code>{{ selectedEvent.id }}</code></dd>
+            </div>
+            <div class="stm-cal__dialog__row">
+              <dt>Datum</dt>
+              <dd>{{ formatDate(selectedEvent.date) }}</dd>
+            </div>
+            <div class="stm-cal__dialog__row">
+              <dt>Beginn</dt>
+              <dd>{{ selectedEvent.time }} Uhr</dd>
+            </div>
+            <div v-if="selectedEvent.einlass" class="stm-cal__dialog__row">
+              <dt>Einlass</dt>
+              <dd>{{ selectedEvent.einlass }} Uhr</dd>
+            </div>
+            <div class="stm-cal__dialog__row">
+              <dt>Spielort</dt>
+              <dd>{{ selectedEvent.spielort }}</dd>
+            </div>
+            <div v-if="selectedEvent.untertitel" class="stm-cal__dialog__row">
+              <dt>Untertitel</dt>
+              <dd>{{ selectedEvent.untertitel }}</dd>
+            </div>
+            <div v-if="selectedEvent.genre" class="stm-cal__dialog__row">
+              <dt>Genre</dt>
+              <dd>{{ selectedEvent.genre }}</dd>
+            </div>
+            <div v-if="selectedEvent.veranstalter" class="stm-cal__dialog__row">
+              <dt>Veranstalter</dt>
+              <dd>{{ selectedEvent.veranstalter }}</dd>
+            </div>
+            <div class="stm-cal__dialog__row">
+              <dt>Verfügbarkeit</dt>
+              <dd>
+                <span v-if="selectedEvent.ticketStatus === 'sold-out'" class="stm-cal__event__status stm-cal__event__status--sold-out">Ausverkauft</span>
+                <span v-else-if="selectedEvent.ticketStatus === 'low'" class="stm-cal__event__status stm-cal__event__status--low">Letzte Tickets</span>
+                <span v-else>
+                  {{ selectedEvent.freieplaetze }} / {{ selectedEvent.kapazitaet }} Plätze frei
+                </span>
+              </dd>
+            </div>
+            <div v-if="selectedEvent.ticketLink" class="stm-cal__dialog__row">
+              <dt>Tickets</dt>
+              <dd><a :href="selectedEvent.ticketLink" target="_blank" rel="noopener">Zum Ticketshop</a></dd>
+            </div>
+          </dl>
+        </k-text>
+      </template>
+    </k-dialog>
+
   </div>
 </template>
 
@@ -69,6 +133,16 @@ const VENUE_COLORS = {
   'Orchestersaal':'#f59e0b',
 };
 
+function generateId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 export default {
   data() {
     const now = new Date();
@@ -79,6 +153,7 @@ export default {
       events:   [],
       loading:  false,
       error:    null,
+      selectedEvent: null,
     };
   },
   mounted() {
@@ -133,10 +208,20 @@ export default {
           }
 
           return {
-            id:           v.getAttribute('id'),
+            id:           v.getAttribute('id') || generateId(),
             title:        text('titel'),
             date,
             time,
+            einlass:      (() => {
+              const raw = text('einlass');
+              if (!raw) return null;
+              const p = raw.padStart(4, '0');
+              return `${p.slice(0, 2)}:${p.slice(2)}`;
+            })(),
+            untertitel:   text('untertitel') || null,
+            genre:        text('genre') || null,
+            veranstalter: text('veranstalter') || null,
+            ticketLink:   text('ticketlink') || text('vorverkauf') || null,
             spielort,
             color:        VENUE_COLORS[spielort] ?? '#6b7280',
             ticketStatus,
@@ -171,6 +256,16 @@ export default {
       if (this.month === 11) { this.month = 0; this.year++; }
       else { this.month++; }
     },
+    openEventDialog(event) {
+      console.log("open!");
+      this.selectedEvent = event;
+      this.$refs.eventDialog.open();
+    },
+    formatDate(isoDate) {
+      if (!isoDate) return '';
+      const [y, m, d] = isoDate.split('-');
+      return `${d}.${m}.${y}`;
+    },
   },
 };
 </script>
@@ -200,6 +295,45 @@ export default {
 .stm-cal__event__status--low {
   background: #fef3c7;
   color: #b45309;
+}
+
+.stm-cal__event {
+  cursor: pointer;
+}
+.stm-cal__event:hover {
+  opacity: .85;
+}
+
+.stm-cal__dialog__headline {
+  margin-bottom: .75rem;
+}
+.stm-cal__dialog__dl {
+  display: grid;
+  gap: .35rem 0;
+  margin: 0;
+}
+.stm-cal__dialog__row {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0 .5rem;
+  align-items: baseline;
+}
+.stm-cal__dialog__row dt {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.stm-cal__dialog__row dd {
+  margin: 0;
+  word-break: break-word;
+}
+.stm-cal__dialog__row code {
+  font-size: .75rem;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 </style>
 

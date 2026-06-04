@@ -165,3 +165,40 @@
   background: #fef3c7;
   color: #b45309;
 }
+.stm-cal__event[data-v-4a680808] {
+  cursor: pointer;
+}
+.stm-cal__event[data-v-4a680808]:hover {
+  opacity: .85;
+}
+.stm-cal__dialog__headline[data-v-4a680808] {
+  margin-bottom: .75rem;
+}
+.stm-cal__dialog__dl[data-v-4a680808] {
+  display: grid;
+  gap: .35rem 0;
+  margin: 0;
+}
+.stm-cal__dialog__row[data-v-4a680808] {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0 .5rem;
+  align-items: baseline;
+}
+.stm-cal__dialog__row dt[data-v-4a680808] {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.stm-cal__dialog__row dd[data-v-4a680808] {
+  margin: 0;
+  word-break: break-word;
+}
+.stm-cal__dialog__row code[data-v-4a680808] {
+  font-size: .75rem;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
