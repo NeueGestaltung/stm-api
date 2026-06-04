@@ -1,5 +1,9 @@
 <?php
 
+load([
+  'StmcalendarArrangementPage' => __DIR__ . '/models/StmcalendarArrangementPage.php',
+]);
+
 Kirby::plugin('stm/stm-api', [
   'options' => [
     'cache' => true,
@@ -9,17 +13,21 @@ Kirby::plugin('stm/stm-api', [
       return $kirby->site()->index()->filterBy('intendedTemplate', 'stmcalendar_arrangement');
     },
   ],
+  'pageModels' => [
+    'stmcalendar_arrangement' => 'StmcalendarArrangementPage',
+  ],
   'blueprints' => [
     'pages/stmcalendar' => __DIR__ . '/blueprints/pages/stmcalendar.yml',
     'pages/stmcalendar_arrangement' => __DIR__ . '/blueprints/pages/stmcalendar_arrangement.yml',
+    'pages/stmcalendar_arrangement_event' => __DIR__ . '/blueprints/pages/stmcalendar_arrangement_event.yml',
     'blocks/stmcalendar' => __DIR__ . '/blueprints/blocks/stmcalendar.yml',
   ],
   'snippets' => [
     'blocks/stmcalendar' => __DIR__ . '/snippets/blocks/stmcalendar.php',
     ],
   'templates' => [
-    'pages/stmcalendar_arrangement' => __DIR__ . '/pages/stmcalendar_arrangement.php',
-    'pages/stmcalendar' => __DIR__ . '/pages/stmcalendar.php',
+    'stmcalendar_arrangement' => __DIR__ . '/templates/pages/stmcalendar_arrangement.php',
+    'stmcalendar'             => __DIR__ . '/templates/pages/stmcalendar.php',
   ],
   'routes' => [
     [

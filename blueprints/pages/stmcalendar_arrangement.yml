@@ -7,16 +7,19 @@ create:
     - theasoftid
 
 sections:
-  pages:
+  eventpages:
     type: pages
+    label: Termine
+    # text: "{{ page.date.toDate('dd.MM.yyyy h:mm') }}"
+
   fields:
     type: fields
     fields:
       eventimid:
         label: Eventim ID
         type: tags
-        max: 2
-        help: "wäre es sinnvoll hier mehrere tags möglich zu machen »Quatsch, existiert z.B. zwei mal … "
+        # max: 2
+        help: "Das sind die IDs der Events "
         options:
           type: api
           url: "{{ site.url }}/stm/eventim-ids"
@@ -25,9 +28,25 @@ sections:
       theasoftid:
         label: Theasoft ID
         type: text
-       
-       
-      myblocks:
-        type: blocks
-        fieldsets:
-          - stmcalendar
+        placeholder: Hier müsste dann die Theasoft ID stehen
+      besetzung:
+        label: Besetzung
+        type: structure
+        fields:
+          rolle:
+            label: Rolle
+            type: text
+          darsteller:
+            label: Darsteller
+            type: text
+      beschreibung:
+        width: 1/2
+        label: Beschreibung des Stücks
+        type: textarea
+        size: large
+      credits:
+        width: 1/2      
+        label: Credits
+        type: textarea
+
+

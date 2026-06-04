@@ -1,12 +1,14 @@
 title: Kalender
 sections:
-  pages:
+  arrangementpages:
     type: pages
     template: stmcalendar_arrangement
   fields:
     type: fields
     fields:
       myblocks:
+        label: Eventim Kalendervorschau
+        class: eventimContent
         type: blocks
         fieldsets:
           - stmcalendar

@@ -1,0 +1,76 @@
+title: Termin (Eventim)
+
+num: alpha
+
+options:
+  changeTitle: false
+  changeSlug: false
+  changeStatus: false
+  duplicate: false
+  move: false
+  delete: false
+
+columns:
+  main:
+    width: 2/3
+    fields:
+      title:
+        label: Titel
+        type: text
+        disabled: true
+      untertitel:
+        label: Untertitel
+        type: text
+        disabled: true
+      genre:
+        label: Genre
+        type: text
+        disabled: true
+      beschreibung:
+        label: Beschreibung
+        type: textarea
+        size: medium
+
+  sidebarEventim:
+    width: 1/3
+    fields:
+      eventimid:
+        label: Eventim ID
+        type: text
+        disabled: true
+      date:
+        label: Datum
+        type: date
+        disabled: true
+      time:
+        label: Beginn
+        type: text
+        disabled: true
+      einlass:
+        label: Einlass
+        type: text
+        disabled: true
+      spielort:
+        label: Spielort
+        type: text
+        disabled: true
+      veranstalter:
+        label: Veranstalter
+        type: text
+        disabled: true
+      ticketlink:
+        label: Ticketlink
+        type: url
+        disabled: true
+      kapazitaet:
+        label: Kapazität
+        type: number
+        disabled: true
+      freieplaetze:
+        label: Freie Plätze
+        type: number
+        disabled: true
+      apistatus:
+        label: Status (API)
+        type: number
+        disabled: true
