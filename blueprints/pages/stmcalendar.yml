@@ -1,0 +1,12 @@
+title: Kalender
+sections:
+  pages:
+    type: pages
+    template: stmcalendar_arrangement
+  fields:
+    type: fields
+    fields:
+      myblocks:
+        type: blocks
+        fieldsets:
+          - stmcalendar

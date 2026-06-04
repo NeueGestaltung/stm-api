@@ -1,0 +1,30 @@
+title: Arrangement
+
+# Fields shown in the page creation dialog
+create:
+  fields: 
+    - eventimid
+    - theasoftid
+
+sections:
+  pages:
+    type: pages
+  fields:
+    type: fields
+    fields:
+      eventimid:
+        label: Eventim ID
+        type: tags
+        max: 1
+        options:
+          type: api
+          url: "{{ site.url }}/stm/eventim-ids"
+          text: "{{ item.text }}"
+          value: "{{ item.value }}"
+      theasoftid:
+        label: Theasoft ID
+        type: text
+      myblocks:
+        type: blocks
+        fieldsets:
+          - stmcalendar
